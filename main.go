@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/tendermint/tendermint/privval"
 	"os"
 	"time"
 
@@ -9,12 +10,12 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/tendermint/tendermint/privval"
+	xprivval "github.com/datachainlab/tm-pkcs11/privval"
 )
 
 func main() {
 	var (
-		addr             = flag.String("addr", ":26659", "Address of client to connect to")
+		addr             = flag.String("addr", ":26656", "Address of client to connect to")
 		chainID          = flag.String("chain-id", "mychain", "chain id")
 		privValKeyPath   = flag.String("priv-key", "", "priv val key file path")
 		privValStatePath = flag.String("priv-state", "", "priv val state file path")
@@ -33,16 +34,16 @@ func main() {
 		"privStatePath", *privValStatePath,
 	)
 
-	pv := privval.LoadFilePV(*privValKeyPath, *privValStatePath)
+	pv := privval.LoadFilePVEmptyState(*privValKeyPath, *privValStatePath)
 
 	var dialer privval.SocketDialer
 	protocol, address := cmn.ProtocolAndAddress(*addr)
 	switch protocol {
 	case "unix":
-		dialer = privval.DialUnixFn(address)
+		dialer = xprivval.DialUnixFn(address)
 	case "tcp":
 		connTimeout := 3 * time.Second // TODO
-		dialer = privval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
+		dialer = xprivval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
 	default:
 		logger.Error("Unknown protocol", "protocol", protocol)
 		os.Exit(1)
