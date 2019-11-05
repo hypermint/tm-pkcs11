@@ -3,7 +3,7 @@
 set -e
 
 CLOUDHSM_IP=${CLOUDHSM_IP:-127.0.0.1}
-HSM=${HSM:-cloudhsm}
+HSM=${HSM:-softhsm}
 
 function start_cloudhsm() {
   # start cloudhsm client
@@ -28,6 +28,8 @@ cloudhsm)
   /opt/cloudhsm/bin/configure -a "${CLOUDHSM_IP}"
   start_cloudhsm
   ;;
+softhsm)
+  ;;
 *)
   echo "unkonwn command: ${HSM}"
   exit 1
@@ -37,4 +39,13 @@ if [ ! -f /opt/cloudhsm/etc/customerCA.crt ]; then
   echo "warning: /opt/cloudhsm/etc/customerCA.crt not found"
 fi
 
-/tm-pkcs11 "$@"
+if ! /tm-pkcs11 "$@"; then
+  code=$?
+  echo "Failed to start tm-pkcs11 ($code)."
+  case ${HSM} in
+  cloudhsm)
+    cat /tmp/cloudhsm_client_start.log
+    ;;
+  esac
+  exit $code
+fi
