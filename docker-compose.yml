@@ -1,14 +1,19 @@
 version: "3.7"
 services:
-  dappchain:
+  hypermint:
     image: bluele/hypermint:unstable
     environment:
       TM_PARAMS: consensus.timeout_commit=1000ms,rpc.max_body_bytes=10000000,rpc.cors_allowed_origins=*,mempool.max_msg_bytes=10000000
     command: >
-      start --home=/root/.hmd
+      /hmd start --home=/root/.hmd
       --log_level="*:debug"
       --p2p.laddr="tcp://0.0.0.0:26656"
       --rpc.laddr="tcp://0.0.0.0:26657"
     ports:
       - 26656:26656
       - 26657:26657
+  tm-pkcs11:
+    build:
+      context: .
+    depends_on:
+      - hypermint
