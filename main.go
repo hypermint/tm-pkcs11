@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/miekg/pkcs11"
 	"github.com/tendermint/tendermint/privval"
 	"os"
 	"time"
@@ -23,6 +24,17 @@ func main() {
 		).With("module", "priv_val")
 	)
 	flag.Parse()
+
+	pkcs11lib := "/opt/cloudhsm/lib/libcloudhsm_pkcs11.so"
+	// p := pkcs11.New("/usr/lib/softhsm/libsofthsm.so")
+	p := pkcs11.New(pkcs11lib)
+	if p == nil {
+		logger.Error("Failed to load PKCS#11 library", "path", pkcs11lib)
+		os.Exit(1)
+	}
+	if err := p.Initialize(); err != nil {
+		panic(err)
+	}
 
 	logger.Info(
 		"Starting private validator",
