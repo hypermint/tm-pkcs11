@@ -1,5 +1,5 @@
 
-FROM golang:1.13.4-alpine3.10 as builder
+FROM golang:1.13.4-stretch as builder
 
 WORKDIR /work
 
@@ -7,8 +7,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-# http://tsujitaku50.hatenablog.com/entry/2017/09/26/193342
-RUN CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo --ldflags '-extldflags "-static"'
+RUN go build
 
 FROM ubuntu:16.04
 
