@@ -9,8 +9,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
-
-	xprivval "github.com/datachainlab/tm-pkcs11/privval"
 )
 
 func main() {
@@ -40,10 +38,10 @@ func main() {
 	protocol, address := cmn.ProtocolAndAddress(*addr)
 	switch protocol {
 	case "unix":
-		dialer = xprivval.DialUnixFn(address)
+		dialer = privval.DialUnixFn(address)
 	case "tcp":
 		connTimeout := 3 * time.Second // TODO
-		dialer = xprivval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
+		dialer = privval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
 	default:
 		logger.Error("Unknown protocol", "protocol", protocol)
 		os.Exit(1)

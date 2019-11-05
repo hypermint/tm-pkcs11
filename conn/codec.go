@@ -10,12 +10,5 @@ var cdc *amino.Codec = amino.NewCodec()
 
 func init() {
 	cryptoAmino.RegisterAmino(cdc)
-	RegisterPacket(cdc)
-}
-
-func RegisterPacket(cdc *amino.Codec) {
-	cdc.RegisterInterface((*conn.Packet)(nil), nil)
-	cdc.RegisterConcrete(conn.PacketPing{}, "tendermint/p2p/PacketPing", nil)
-	cdc.RegisterConcrete(conn.PacketPong{}, "tendermint/p2p/PacketPong", nil)
-	cdc.RegisterConcrete(conn.PacketMsg{}, "tendermint/p2p/PacketMsg", nil)
+	conn.RegisterPacket(cdc)
 }
