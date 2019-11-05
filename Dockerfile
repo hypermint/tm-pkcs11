@@ -10,11 +10,23 @@ COPY . .
 # http://tsujitaku50.hatenablog.com/entry/2017/09/26/193342
 RUN CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo --ldflags '-extldflags "-static"'
 
-FROM library/amazonlinux:2.0.20191016.0
+FROM ubuntu:16.04
 
-COPY --from=builder /work/tm-pkcs11 /usr/local/bin/tm-pkcs11
+RUN apt-get update && apt-get install -y \
+  bash \
+  wget \
+  libedit2 \
+  libjson-c2 \
+  python \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN yum install -y wget
+RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client_latest_amd64.deb
+RUN dpkg -i cloudhsm-client_latest_amd64.deb
 
-RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/EL7/cloudhsm-client-latest.el7.x86_64.rpm
-RUN yum install -y ./cloudhsm-client-latest.el7.x86_64.rpm
+COPY --from=builder /work/tm-pkcs11 /tm-pkcs11
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod a+x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
