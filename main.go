@@ -1,8 +1,9 @@
 package main
 
 import (
+	"crypto/elliptic"
 	"flag"
-	"github.com/miekg/pkcs11"
+	"github.com/ThalesIgnite/crypto11"
 	"github.com/tendermint/tendermint/privval"
 	"os"
 	"time"
@@ -25,20 +26,22 @@ func main() {
 	)
 	flag.Parse()
 
-
 	pkcs11lib, ok := os.LookupEnv("HSM_SOLIB")
 	if !ok {
 		logger.Error("HSM_SOLIB not set")
 		os.Exit(1)
 	}
 
-	p := pkcs11.New(pkcs11lib)
-	if p == nil {
-		logger.Error("Failed to load PKCS#11 library", "path", pkcs11lib)
+	if context, err := crypto11.Configure(&crypto11.Config{
+		Path: pkcs11lib,
+		TokenLabel: "hoge",
+		Pin: "password",
+		UseGCMIVFromHSM: true,
+	}); err != nil {
+		logger.Error("Failed to load PKCS#11 library", "err", err, "path", pkcs11lib)
 		os.Exit(1)
-	}
-	if err := p.Initialize(); err != nil {
-		panic(err)
+	} else {
+		context.GenerateECDSAKeyPair(nil, elliptic.P256())
 	}
 
 	logger.Info(

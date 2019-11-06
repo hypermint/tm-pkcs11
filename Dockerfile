@@ -47,6 +47,11 @@ RUN cd SoftHSMv2 \
     && make \
     && make install
 
+# Configure SoftHSM
+
+COPY softhsm2.conf /etc/softhsm2.conf
+RUN softhsm2-util --init-token --slot 0 --label "hoge" --so-pin password --pin password
+
 # Install tm-pkcs11
 
 COPY --from=builder /work/tm-pkcs11 /tm-pkcs11

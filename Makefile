@@ -1,6 +1,9 @@
 
+build:
+	go build
+
 build-image:
 	docker build . -t hypermint/tm-pkcs11:unstable
 
-prepare:
-
+run-image:
+	docker run hypermint/tm-pkcs11:unstable
