@@ -3,8 +3,10 @@ package main
 import (
 	"crypto/elliptic"
 	"flag"
+	"fmt"
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/types"
 	"os"
 	"time"
 
@@ -17,8 +19,6 @@ func main() {
 	var (
 		addr             = flag.String("addr", ":26656", "Address of client to connect to")
 		chainID          = flag.String("chain-id", "mychain", "chain id")
-		privValKeyPath   = flag.String("priv-key", "", "priv val key file path")
-		privValStatePath = flag.String("priv-state", "", "priv val state file path")
 
 		logger = log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
@@ -32,27 +32,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if context, err := crypto11.Configure(&crypto11.Config{
-		Path: pkcs11lib,
-		TokenLabel: "hoge",
-		Pin: "password",
-		UseGCMIVFromHSM: true,
-	}); err != nil {
-		logger.Error("Failed to load PKCS#11 library", "err", err, "path", pkcs11lib)
-		os.Exit(1)
-	} else {
-		context.GenerateECDSAKeyPair(nil, elliptic.P256())
+	pv, err := CreatePV(pkcs11lib)
+	if err != nil {
+		panic(err)
 	}
 
 	logger.Info(
 		"Starting private validator",
 		"addr", *addr,
 		"chainID", *chainID,
-		"privKeyPath", *privValKeyPath,
-		"privStatePath", *privValStatePath,
 	)
-
-	pv := privval.LoadFilePVEmptyState(*privValKeyPath, *privValStatePath)
 
 	var dialer privval.SocketDialer
 	protocol, address := cmn.ProtocolAndAddress(*addr)
@@ -70,8 +59,7 @@ func main() {
 	sd := privval.NewSignerDialerEndpoint(logger, dialer)
 	ss := privval.NewSignerServer(sd, *chainID, pv)
 
-	err := ss.Start()
-	if err != nil {
+	if err := ss.Start(); err != nil {
 		panic(err)
 	}
 
@@ -85,4 +73,21 @@ func main() {
 
 	// Run forever.
 	select {}
+}
+
+func CreatePV(pkcs11lib string) (types.PrivValidator, error) {
+	if context, err := crypto11.Configure(&crypto11.Config{
+		Path: pkcs11lib,
+		TokenLabel: "hoge",
+		Pin: "password",
+		UseGCMIVFromHSM: true,
+	}); err != nil {
+		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
+	} else {
+		if signer, err := context.GenerateECDSAKeyPair(nil, elliptic.P256()); err != nil {
+			return nil, err
+		} else {
+			return NewRemoteSignerPV(signer), nil
+		}
+	}
 }

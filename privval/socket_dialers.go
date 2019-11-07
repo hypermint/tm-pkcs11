@@ -7,7 +7,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	pkconn "github.com/datachainlab/tm-pkcs11/conn"
+	pkconn "github.com/hypermint/tm-pkcs11/conn"
 )
 
 // DialTCPFn dials the given tcp addr, using the given timeoutReadWrite and
