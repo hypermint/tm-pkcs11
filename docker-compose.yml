@@ -17,13 +17,13 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:26657/status || exit 1"]
       start_period: "30s"
-      retries: 3
-      timeout: "5s"
-      interval: "60s"
+      retries: 10
+      timeout: "3s"
+      interval: "10s"
   tm-pkcs11:
     build:
       context: .
-    command: --addr hypermint:26656
+    command: --addr hypermint:26656 --chain-id test-chain-uAssCJ
     depends_on:
       - hypermint
     links:

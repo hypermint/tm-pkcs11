@@ -12,5 +12,6 @@ run-image:
 	docker run -it hypermint/tm-pkcs11:unstable
 
 hm-init:
+	rm -rf /tmp/hypermint
 	docker run -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd tendermint init-validator --mnemonic $(MNEMONIC) --hdw_path $(HDW_PATH)
-	docker run -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd init
+	docker run -v "/tmp/hypermint:/root/.hmd" -v "$(PWD)/hm-config:/hm-config" bluele/hypermint:unstable /hmd create --genesis /hm-config/genesis.json
