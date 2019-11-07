@@ -7,6 +7,7 @@ import (
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
+	"math/rand"
 	"os"
 	"time"
 
@@ -84,10 +85,17 @@ func CreatePV(pkcs11lib string) (types.PrivValidator, error) {
 	}); err != nil {
 		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
 	} else {
-		if signer, err := context.GenerateECDSAKeyPair(nil, elliptic.P256()); err != nil {
+		id := randomBytes32()
+		if signer, err := context.GenerateECDSAKeyPair(id, elliptic.P256()); err != nil {
 			return nil, err
 		} else {
 			return NewRemoteSignerPV(signer), nil
 		}
 	}
+}
+
+func randomBytes32() []byte {
+	result := make([]byte, 32)
+	rand.Read(result)
+	return result
 }
