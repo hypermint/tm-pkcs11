@@ -27,6 +27,9 @@ case ${HSM} in
 cloudhsm)
   /opt/cloudhsm/bin/configure -a "${CLOUDHSM_IP}"
   start_cloudhsm
+  if [ ! -f /opt/cloudhsm/etc/customerCA.crt ]; then
+    echo "warning: /opt/cloudhsm/etc/customerCA.crt not found"
+  fi
   ;;
 softhsm)
   ;;
@@ -34,10 +37,6 @@ softhsm)
   echo "unkonwn command: ${HSM}"
   exit 1
 esac
-
-if [ ! -f /opt/cloudhsm/etc/customerCA.crt ]; then
-  echo "warning: /opt/cloudhsm/etc/customerCA.crt not found"
-fi
 
 if ! /tm-pkcs11 "$@"; then
   code=$?
