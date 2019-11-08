@@ -20,3 +20,9 @@ tm-init:
 	rm -rf /tmp/tendermint
 	docker run -it --rm -v "/tmp/tendermint:/tendermint" -v "$(PWD)/tm-config:/tm-config" tendermint/tendermint init
 	cp tm-config/* /tmp/tendermint/config/
+
+run-tm-signer-harness:
+	tm-signer-harness run --addr tcp://127.0.0.1:26656 --tmhome /tmp/tendermint
+
+run-tm-pkcs11:
+	./tm-pkcs11 --addr 127.0.0.1:26656 --chain-id test-chain-uAssCJ

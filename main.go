@@ -5,14 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ThalesIgnite/crypto11"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
 	"math/rand"
 	"os"
 	"time"
 
-	xprivval "github.com/hypermint/tm-pkcs11/privval"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -34,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	pv, err := CreatePV(pkcs11lib)
+	pv, err := CreateEcdsaPV(pkcs11lib)
 	if err != nil {
 		panic(err)
 	}
@@ -49,11 +48,11 @@ func main() {
 	protocol, address := cmn.ProtocolAndAddress(*addr)
 	switch protocol {
 	case "unix":
-		dialer = xprivval.DialUnixFn(address)
+		dialer = privval.DialUnixFn(address)
 	case "tcp":
 		connTimeout := 3 * time.Second // TODO
-		//dialer = xprivval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
-		dialer = xprivval.DialTCPFn(address, connTimeout, secp256k1.GenPrivKey())
+		dialer = privval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
+		// dialer = xprivval.DialTCPFn(address, connTimeout, secp256k1.GenPrivKey())
 	default:
 		logger.Error("Unknown protocol", "protocol", protocol)
 		os.Exit(1)
@@ -78,7 +77,7 @@ func main() {
 	select {}
 }
 
-func CreatePV(pkcs11lib string) (types.PrivValidator, error) {
+func CreateEcdsaPV(pkcs11lib string) (types.PrivValidator, error) {
 	if context, err := crypto11.Configure(&crypto11.Config{
 		Path: pkcs11lib,
 		TokenLabel: "hoge",
