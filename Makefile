@@ -13,5 +13,10 @@ run-image:
 
 hm-init:
 	rm -rf /tmp/hypermint
-	docker run -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd tendermint init-validator --mnemonic $(MNEMONIC) --hdw_path $(HDW_PATH)
-	docker run -v "/tmp/hypermint:/root/.hmd" -v "$(PWD)/hm-config:/hm-config" bluele/hypermint:unstable /hmd create --genesis /hm-config/genesis.json
+	docker run -it --rm -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd tendermint init-validator --mnemonic $(MNEMONIC) --hdw_path $(HDW_PATH)
+	docker run -it --rm -v "/tmp/hypermint:/root/.hmd" -v "$(PWD)/hm-config:/hm-config" bluele/hypermint:unstable /hmd create --genesis /hm-config/genesis.json
+
+tm-init:
+	rm -rf /tmp/tendermint
+	docker run -it --rm -v "/tmp/tendermint:/tendermint" -v "$(PWD)/tm-config:/tm-config" tendermint/tendermint init
+	cp tm-config/* /tmp/tendermint/config/

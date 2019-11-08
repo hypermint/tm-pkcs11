@@ -138,7 +138,7 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	if _, ok := remPubKey.(ed25519.PubKeyEd25519); !ok {
 		if _, ok := remPubKey.(secp256k1.PubKeySecp256k1); !ok {
-			return nil, errors.Errorf("expected ed25519 pubkey, got %T", remPubKey)
+			return nil, errors.Errorf("expected ed25519 or secp256k1 pubkey, got %T", remPubKey)
 		}
 	}
 
