@@ -1,11 +1,11 @@
 # tm-pkcs11
 
 ```
-./build/hmd start --log_level="main:info" --home=~/.hmd
+./build/hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0.0.0.0:26658
 ```
 
 ```
-$ ./tm-pkcs11 --addr :26656 --priv-key ~/.hmd/config/priv_validator_key.json 
+$ ./tm-pkcs11 --addr :26658 --priv-key ~/.hmd/config/priv_validator_key.json
 ```
 
 ## How to use docker image 

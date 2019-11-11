@@ -1,6 +1,7 @@
 
 MNEMONIC="token dash time stand brisk fatal health honey frozen brown flight kitchen"
 HDW_PATH="m/44'/60'/0'/0/0"
+HSM_SOLIB=/usr/local/lib/softhsm/libsofthsm2.so
 
 build:
 	go build
@@ -22,7 +23,7 @@ tm-init:
 	cp tm-config/* /tmp/tendermint/config/
 
 run-tm-signer-harness:
-	tm-signer-harness run --addr tcp://127.0.0.1:26656 --tmhome /tmp/tendermint
+	tm-signer-harness run --addr tcp://127.0.0.1:26658 --tmhome /tmp/tendermint
 
 run-tm-pkcs11:
-	./tm-pkcs11 --addr 127.0.0.1:26656 --chain-id test-chain-uAssCJ
+	HSM_SOLIB=$(HSM_SOLIB) ./tm-pkcs11 --addr 127.0.0.1:26658 --chain-id test-chain-uAssCJ

@@ -8,6 +8,8 @@ require (
 	github.com/miekg/pkcs11 v1.0.3
 	github.com/pkg/errors v0.8.1
 	github.com/tendermint/go-amino v0.14.1
-	github.com/tendermint/tendermint v0.32.6
+	github.com/tendermint/tendermint v0.32.3
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )
+
+replace github.com/ThalesIgnite/crypto11 => ../crypto11

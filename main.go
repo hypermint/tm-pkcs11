@@ -5,13 +5,15 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ThalesIgnite/crypto11"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/miekg/pkcs11"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
 	"math/rand"
 	"os"
 	"time"
 
+	xprivval "github.com/hypermint/tm-pkcs11/privval"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -50,9 +52,9 @@ func main() {
 	case "unix":
 		dialer = privval.DialUnixFn(address)
 	case "tcp":
-		connTimeout := 3 * time.Second // TODO
-		dialer = privval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
-		// dialer = xprivval.DialTCPFn(address, connTimeout, secp256k1.GenPrivKey())
+		connTimeout := 100 * time.Second // TODO
+		// dialer = privval.DialTCPFn(address, connTimeout, ed25519.GenPrivKey())
+		dialer = xprivval.DialTCPFn(address, connTimeout, secp256k1.GenPrivKey())
 	default:
 		logger.Error("Unknown protocol", "protocol", protocol)
 		os.Exit(1)
@@ -86,12 +88,27 @@ func CreateEcdsaPV(pkcs11lib string) (types.PrivValidator, error) {
 	}); err != nil {
 		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
 	} else {
-		id := randomBytes32()
-		if signer, err := context.GenerateECDSAKeyPair(id, elliptic.P256()); err != nil {
+		pubId := randomBytes32()
+		dummyCurve := elliptic.P256()
+		if pub, err := crypto11.NewAttributeSetWithID(pubId); err != nil {
 			return nil, err
 		} else {
-			return NewRemoteSignerPV(signer), nil
+			priv := pub.Copy()
+			pub.AddIfNotPresent([]*pkcs11.Attribute{
+				// https://www.secg.org/sec2-v2.pdf
+				// https://play.golang.org/p/M0VLD0RZAaM
+				pkcs11.NewAttribute(pkcs11.CKA_ECDSA_PARAMS, []byte {0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x0a}),
+			})
+			if signer, err := context.GenerateECDSAKeyPairWithAttributes(pub, priv, dummyCurve); err != nil {
+				return nil, err
+			} else {
+				logger := log.NewTMLogger(
+					log.NewSyncWriter(os.Stdout),
+				).With("module", "signer")
+				return NewRemoteSignerPV(signer, logger), nil
+			}
 		}
+
 	}
 }
 

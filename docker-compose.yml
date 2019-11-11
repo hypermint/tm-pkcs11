@@ -6,12 +6,14 @@ services:
       TM_PARAMS: consensus.timeout_commit=1000ms,rpc.max_body_bytes=10000000,rpc.cors_allowed_origins=*,mempool.max_msg_bytes=10000000
     command: >
       /hmd start --home=/root/.hmd
-      --log_level="*:error"
+      --log_level="*:info"
       --p2p.laddr="tcp://0.0.0.0:26656"
       --rpc.laddr="tcp://0.0.0.0:26657"
+      --priv_validator_laddr=tcp://0.0.0.0:26658
     ports:
       - 26656:26656
       - 26657:26657
+      - 26658:26658
     volumes:
       - "/tmp/hypermint:/root/.hmd"
     healthcheck:
@@ -23,7 +25,7 @@ services:
   tm-pkcs11:
     build:
       context: .
-    command: --addr hypermint:26656 --chain-id test-chain-uAssCJ
+    command: --addr hypermint:26658 --chain-id test-chain-uAssCJ
     depends_on:
       - hypermint
     links:
