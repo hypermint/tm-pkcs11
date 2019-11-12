@@ -3,7 +3,10 @@ module github.com/hypermint/tm-pkcs11
 go 1.13
 
 require (
+	github.com/GincoInc/go-crypto v1.2.0
 	github.com/ThalesIgnite/crypto11 v1.2.1
+	github.com/allegro/bigcache v1.2.1 // indirect
+	github.com/ethereum/go-ethereum v1.8.21
 	github.com/libp2p/go-buffer-pool v0.0.2
 	github.com/miekg/pkcs11 v1.0.3
 	github.com/pkg/errors v0.8.1
