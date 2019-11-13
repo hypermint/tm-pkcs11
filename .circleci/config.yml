@@ -3,7 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-      - image: circleci/golang:1.13.4-stretch
+      - image: circleci/golang:1.13.4-buster
     working_directory: /home/circleci/workspace
     environment:
       GOCACHE: /home/circleci/.cache/go-build
@@ -44,6 +44,10 @@ jobs:
             - go-build-cache-v1-{{ .Branch }}
             - go-build-cache-v1
       - run: |
+          sudo apt-get update
+          sudo apt-get install softhsm2 libsofthsm2-dev
+      - run: |
+          export HSM_SOLIB="/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"
           go test -v `go list ./...`
       - save_cache:
           key: go-build-cache-v1-{{ .Branch }}-{{ .Revision }}
