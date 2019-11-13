@@ -27,7 +27,11 @@ func TestSignMsg(t *testing.T) {
 }
 
 func createPV(id []byte, t *testing.T) *RemoteSignerPV {
-	c11, err := CreateCrypto11("/usr/local/lib/softhsm/libsofthsm2.so")
+	solib, found := os.LookupEnv("HSM_SOLIB")
+	if !found {
+		solib = DefaultHsmSoLib
+	}
+	c11, err := CreateCrypto11(solib)
 	if err != nil {
 		t.Fatal(err)
 	}

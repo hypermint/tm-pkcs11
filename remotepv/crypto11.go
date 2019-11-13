@@ -1,11 +1,18 @@
 package remotepv
 
 import (
+	"errors"
 	"fmt"
 	gincocrypto "github.com/GincoInc/go-crypto"
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/miekg/pkcs11"
 	"math/rand"
+)
+
+const DefaultHsmSoLib = "/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"
+
+var (
+	ErrKeyFound = errors.New("key found")
 )
 
 func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
@@ -37,7 +44,7 @@ func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
 	if signer, err := context.FindKeyPair(nil, label); err != nil {
 		return err
 	} else if signer != nil {
-		return fmt.Errorf("key found: %v", label)
+		return ErrKeyFound
 	}
 	pubId := randomBytes32()
 	dummyCurve := gincocrypto.Secp256k1()

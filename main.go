@@ -32,17 +32,19 @@ func main() {
 
 	pkcs11lib, ok := os.LookupEnv("HSM_SOLIB")
 	if !ok {
-		logger.Error("HSM_SOLIB not set")
-		os.Exit(1)
+		pkcs11lib = remotepv.DefaultHsmSoLib
 	}
 
-	label := []byte("piyo3")
 	c11ctx, err := remotepv.CreateCrypto11(pkcs11lib)
 	if err != nil {
 		panic(err)
 	}
+
+	label := []byte("piyo3")
 	if err := remotepv.GenerateKeyPair2(c11ctx, label); err != nil {
-		logger.Info("failed to generate key pair", "error", err)
+		if err != remotepv.ErrKeyFound {
+			panic(err)
+		}
 	}
 	pv, err := CreateEcdsaPV(c11ctx, label)
 	if err != nil {
