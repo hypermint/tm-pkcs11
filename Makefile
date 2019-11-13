@@ -30,3 +30,6 @@ run-tm-signer-harness:
 
 run-tm-pkcs11:
 	HSM_SOLIB=$(HSM_SOLIB) ./tm-pkcs11 --addr 127.0.0.1:26658 --chain-id test-chain-uAssCJ
+
+validate-circleci-config:
+	circleci config validate .circleci/config.yml
