@@ -37,7 +37,7 @@ func main() {
 	}
 
 	label := []byte("piyo3")
-	c11ctx, err := CreateCrypto11(pkcs11lib)
+	c11ctx, err := remotepv.CreateCrypto11(pkcs11lib)
 	if err != nil {
 		panic(err)
 	}
@@ -85,19 +85,6 @@ func main() {
 
 	// Run forever.
 	select {}
-}
-
-func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
-	context, err := crypto11.Configure(&crypto11.Config{
-		Path: pkcs11lib,
-		TokenLabel: "hoge",
-		Pin: "password",
-		UseGCMIVFromHSM: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
-	}
-	return context, nil
 }
 
 func CreateEcdsaPV(context *crypto11.Context, label []byte) (types.PrivValidator, error) {

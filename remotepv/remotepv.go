@@ -5,14 +5,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	gincocrypto "github.com/GincoInc/go-crypto"
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/btcsuite/btcd/btcec"
-	// gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/types"
+	"math/big"
 )
+
+var secp256k1halfN = new(big.Int).Rsh(btcec.S256().N, 1)
 
 type RemoteSignerPV struct {
 	s crypto11.Signer
@@ -76,27 +79,39 @@ func (pv *RemoteSignerPV) SignProposal(chainID string, proposal *types.Proposal)
 }
 
 func (pv *RemoteSignerPV) signMsg(msgBytes []byte) ([]byte, error) {
-	if derSig, err := pv.s.Sign(rand.Reader, msgBytes, nil); err != nil {
+	hash := tmcrypto.Sha256(msgBytes)
+	if derSig, err := pv.s.Sign(rand.Reader, hash[:], nil); err != nil {
 		return nil, err
 	} else {
-		signature, err := btcec.ParseDERSignature(derSig, btcec.S256())
+		signature, err := btcec.ParseDERSignature(derSig, gincocrypto.Secp256k1()/*btcec.S256()*/)
 		if err != nil {
 			return nil, err
 		}
 
 		// TODO: for debug
 		ecdsaPubkey := pv.s.Public().(*ecdsa.PublicKey)
-		if !ecdsa.Verify(ecdsaPubkey, msgBytes, signature.R, signature.S) {
+		if !ecdsa.Verify(ecdsaPubkey, hash[:], signature.R, signature.S) {
 			return nil, errors.New("failed to verify")
 		}
 
+		pv.logger.Debug("signature", "r", signature.R, "s", signature.S)
 		rbytes, sbytes := signature.R.Bytes(), signature.S.Bytes()
-		sigBytes := make([]byte, 65)
+		sigBytes := make([]byte, 64)
 		copy(sigBytes[32-len(rbytes):32], rbytes)
 		copy(sigBytes[64-len(sbytes):64], sbytes)
 
-		pubkey := pv.GetPubKey()
-		return makeRecoverableSignature(msgBytes, sigBytes, pubkey)
+		// Reject malleable signatures.
+		// Check tendermint@v0.32.3/crypto/secp256k1/secp256k1_nocgo.go for detail
+		if signature.S.Cmp(secp256k1halfN) > 0 {
+			return pv.signMsg(msgBytes)
+		}
+
+		// TODO: for debug
+		if !pv.GetPubKey().VerifyBytes(msgBytes, sigBytes) {
+			return nil, errors.New("failed to verify (2)")
+		}
+
+		return sigBytes, nil
 	}
 }
 

@@ -8,6 +8,19 @@ import (
 	"math/rand"
 )
 
+func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
+	context, err := crypto11.Configure(&crypto11.Config{
+		Path: pkcs11lib,
+		TokenLabel: "hoge",
+		Pin: "password",
+		UseGCMIVFromHSM: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
+	}
+	return context, nil
+}
+
 func GenerateKeyPair(context *crypto11.Context, label []byte) error {
 	id := randomBytes32()
 	if _, err := context.FindKeyPair(nil, label); err == nil {
