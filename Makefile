@@ -3,6 +3,9 @@ MNEMONIC="token dash time stand brisk fatal health honey frozen brown flight kit
 HDW_PATH="m/44'/60'/0'/0/0"
 HSM_SOLIB=/usr/local/lib/softhsm/libsofthsm2.so
 
+TM_PARAMS='log_level="*:error"'
+export TM_PARAMS
+
 build:
 	go build
 

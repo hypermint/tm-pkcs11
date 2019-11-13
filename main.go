@@ -6,15 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ThalesIgnite/crypto11"
-	"github.com/miekg/pkcs11"
+	"github.com/hypermint/tm-pkcs11/remotepv"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
-	"math/rand"
 	"os"
 	"time"
 
-	gincocrypto "github.com/GincoInc/go-crypto"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	xprivval "github.com/hypermint/tm-pkcs11/privval"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -43,7 +41,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := GenerateKeyPair2(c11ctx, label); err != nil {
+	if err := remotepv.GenerateKeyPair2(c11ctx, label); err != nil {
 		logger.Info("failed to generate key pair", "error", err)
 	}
 	pv, err := CreateEcdsaPV(c11ctx, label)
@@ -102,46 +100,6 @@ func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
 	return context, nil
 }
 
-func GenerateKeyPair(context *crypto11.Context, label []byte) error {
-	id := randomBytes32()
-	if _, err := context.FindKeyPair(nil, label); err == nil {
-		return fmt.Errorf("key found: %v", label)
-	}
-	_, err := context.GenerateECDSAKeyPairWithLabel(id, label, gincocrypto.Secp256k1())
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
-	if signer, err := context.FindKeyPair(nil, label); err != nil {
-		return err
-	} else if signer != nil {
-		return fmt.Errorf("key found: %v", label)
-	}
-	pubId := randomBytes32()
-	dummyCurve := gincocrypto.Secp256k1()
-	if pub, err := crypto11.NewAttributeSetWithIDAndLabel(pubId, label); err != nil {
-		return err
-	} else {
-		priv := pub.Copy()
-		pub.AddIfNotPresent([]*pkcs11.Attribute{
-			// https://www.secg.org/sec2-v2.pdf
-			// https://play.golang.org/p/M0VLD0RZAaM
-			pkcs11.NewAttribute(pkcs11.CKA_ECDSA_PARAMS, []byte {0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x0a}),
-		})
-		if signer, err := context.GenerateECDSAKeyPairWithAttributes(pub, priv, dummyCurve); err != nil {
-			return err
-		} else {
-			if signer == nil {
-				return fmt.Errorf("signer is nil")
-			}
-			return nil
-		}
-	}
-}
-
 func CreateEcdsaPV(context *crypto11.Context, label []byte) (types.PrivValidator, error) {
 	if signer, err := context.FindKeyPair(nil, label); err != nil {
 		return nil, err
@@ -156,25 +114,17 @@ func CreateEcdsaPV(context *crypto11.Context, label []byte) (types.PrivValidator
 		if !ok {
 			return nil, fmt.Errorf("not a ECDSA key")
 		}
-		// address := gethcrypto.PubkeyToAddress(*pubKey0)
-		pubKey := secp256k1.PubKeySecp256k1{}
-		pubKeyBytes := gethcrypto.CompressPubkey(pubKey0)
-		if len(pubKeyBytes) != secp256k1.PubKeySecp256k1Size {
-			return nil, fmt.Errorf("invalid pubkey length: %v", len(pubKeyBytes))
+
+		pubKey, err := remotepv.PublicKeyToPubKeySecp256k1(pubKey0)
+		if err != nil {
+			return nil, err
 		}
-		copy(pubKey[:], pubKeyBytes[1:])
-		pubKey[secp256k1.PubKeySecp256k1Size-1] = 0
-		logger.Info("validator",
+		logger.Info("validator key info",
 			"address", pubKey.Address(),
+			"address_eth", gethcrypto.PubkeyToAddress(*pubKey0).Hex(),
 			"pub_key", cdc.MustMarshalJSON(pubKey),
 			"pub_key_bytes", hex.EncodeToString(pubKey[:]),
 		)
-		return NewRemoteSignerPV(signer, logger), nil
+		return remotepv.NewRemoteSignerPV(signer, logger), nil
 	}
-}
-
-func randomBytes32() []byte {
-	result := make([]byte, 32)
-	rand.Read(result)
-	return result
 }

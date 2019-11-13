@@ -6,6 +6,7 @@ require (
 	github.com/GincoInc/go-crypto v1.2.0
 	github.com/ThalesIgnite/crypto11 v1.2.1
 	github.com/allegro/bigcache v1.2.1 // indirect
+	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
 	github.com/ethereum/go-ethereum v1.8.21
 	github.com/libp2p/go-buffer-pool v0.0.2
 	github.com/miekg/pkcs11 v1.0.3
