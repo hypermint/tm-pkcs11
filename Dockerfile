@@ -60,7 +60,7 @@ ENV CLOUDHSM_SOLIB /opt/cloudhsm/lib/libcloudhsm_pkcs11.so
 ENV SOFTHSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
 ENV HSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
 
-COPY entrypoint.sh /entrypoint.sh
+COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
