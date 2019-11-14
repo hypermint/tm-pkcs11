@@ -1,0 +1,65 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+      - image: circleci/golang:1.13.4-buster
+    working_directory: /home/circleci/workspace
+    environment:
+      GOCACHE: /home/circleci/.cache/go-build
+
+jobs:
+  setup-build:
+    executor:
+      name: default
+    steps:
+      - run: go env
+      - checkout
+      - restore_cache:
+          keys:
+            - go-module-cache-v1-{{ checksum "/home/circleci/workspace/go.sum" }}
+            - go-module-cache-v1-
+      - run: go mod download
+      - save_cache:
+          key: go-module-cache-v1-{{ checksum "/home/circleci/workspace/go.sum" }}
+          paths:
+            - /go/pkg/mod/cache
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  test:
+    executor:
+      name: default
+    steps:
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - go-module-cache-v1-{{ checksum "/home/circleci/workspace/go.sum" }}
+            - go-module-cache-v1-
+      - restore_cache:
+          keys:
+            - go-build-cache-v1-{{ .Branch }}-{{ .Revision }}
+            - go-build-cache-v1-{{ .Branch }}
+            - go-build-cache-v1
+      - run: |
+          sudo apt-get update
+          sudo apt-get install softhsm2 libsofthsm2-dev
+      - run: |
+          sudo softhsm2-util --init-token --slot 0 --label "hoge" --so-pin password --pin password
+      - run: |
+          sudo /usr/local/go/bin/go test -v `go list ./...`
+      - save_cache:
+          key: go-build-cache-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /home/circleci/.cache/go-build
+
+workflows:
+  version: 2
+  builds:
+    jobs:
+      - setup-build
+      - test:
+          requires:
+            - setup-build
