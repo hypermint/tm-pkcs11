@@ -14,11 +14,11 @@ var (
 	ErrKeyFound = errors.New("key found")
 )
 
-func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
+func CreateCrypto11(pkcs11lib, tokenLabel, password string) (*crypto11.Context, error) {
 	context, err := crypto11.Configure(&crypto11.Config{
 		Path: pkcs11lib,
-		TokenLabel: "hoge",
-		Pin: "password",
+		TokenLabel: tokenLabel,
+		Pin: password,
 		UseGCMIVFromHSM: true,
 	})
 	if err != nil {

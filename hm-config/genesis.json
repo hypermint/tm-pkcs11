@@ -18,10 +18,10 @@
   },
   "validators": [
     {
-      "address": "EAD7CE2E5CEEA32791572992B190BBC3F0B5E71E",
+      "address": "59CD01C8992DD04E70EEE51F51FDAC6A4B49572D",
       "pub_key": {
         "type": "tendermint/PubKeySecp256k1",
-        "value": "A1BmxxYBBvqYERuhfABWooLajrbOQALWmQ4vvtwScwPg"
+        "value": "ArUtPvRZb62z5V6elvl3nHNnL5pX6S4q24EXG8m7jZEH"
       },
       "power": "1",
       "name": ""

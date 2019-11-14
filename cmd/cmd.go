@@ -27,6 +27,8 @@ func init() {
 	rootCmd.PersistentFlags().String("addr", ":26656", "Address of client to connect to")
 	rootCmd.PersistentFlags().String("chain-id", "test-chain-uAssCJ", "chain id")
 	rootCmd.PersistentFlags().String("key-label", "default", "key label")
+	rootCmd.PersistentFlags().String("token-label", "hoge", "token label")
+	rootCmd.PersistentFlags().String("password", "password", "password")
 }
 
 var rootCmd = &cobra.Command{
@@ -40,6 +42,8 @@ var rootCmd = &cobra.Command{
 		addr := viper.GetString("addr")
 		chainID := viper.GetString("chain-id")
 		keyLabel := viper.GetString("key-label")
+		tokenLabel := viper.GetString("token-label")
+		password := viper.GetString("password")
 
 		logger := log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
@@ -50,7 +54,7 @@ var rootCmd = &cobra.Command{
 			pkcs11lib = helpers.DefaultHsmSoLib
 		}
 
-		c11ctx, err := helpers.CreateCrypto11(pkcs11lib)
+		c11ctx, err := helpers.CreateCrypto11(pkcs11lib, tokenLabel, password)
 		if err != nil {
 			panic(err)
 		}

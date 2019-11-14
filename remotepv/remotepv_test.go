@@ -32,7 +32,7 @@ func createPV(id []byte, t *testing.T) *RemoteSignerPV {
 	if !found {
 		solib = helpers.DefaultHsmSoLib
 	}
-	c11, err := helpers.CreateCrypto11(solib)
+	c11, err := helpers.CreateCrypto11(solib, "hoge", "password")
 	if err != nil {
 		t.Fatal(err)
 	}
