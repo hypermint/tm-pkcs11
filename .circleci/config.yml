@@ -47,8 +47,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install softhsm2 libsofthsm2-dev
       - run: |
-          export HSM_SOLIB="/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"
-          go test -v `go list ./...`
+          sudo softhsm2-util --init-token --slot 0 --label "hoge" --so-pin password --pin password
+      - run: |
+          sudo /usr/local/go/bin/go test -v `go list ./...`
       - save_cache:
           key: go-build-cache-v1-{{ .Branch }}-{{ .Revision }}
           paths:
