@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	amino "github.com/tendermint/go-amino"

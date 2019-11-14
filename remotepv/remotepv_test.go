@@ -2,6 +2,7 @@ package remotepv
 
 import (
 	gincocrypto "github.com/GincoInc/go-crypto"
+	"github.com/hypermint/tm-pkcs11/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
 	"os"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestGetPubKey(t *testing.T) {
-	id := randomBytes32()
+	id := helpers.RandomBytes32()
 	pv := createPV(id, t)
 	assert.NotNil(t, pv)
 	pubKey := pv.GetPubKey()
@@ -18,7 +19,7 @@ func TestGetPubKey(t *testing.T) {
 
 func TestSignMsg(t *testing.T) {
 	a := assert.New(t)
-	id := randomBytes32()
+	id := helpers.RandomBytes32()
 	pv := createPV(id, t)
 	msg := []byte{1, 2, 3}
 	sig, err := pv.signMsg(msg)
@@ -29,9 +30,9 @@ func TestSignMsg(t *testing.T) {
 func createPV(id []byte, t *testing.T) *RemoteSignerPV {
 	solib, found := os.LookupEnv("HSM_SOLIB")
 	if !found {
-		solib = DefaultHsmSoLib
+		solib = helpers.DefaultHsmSoLib
 	}
-	c11, err := CreateCrypto11(solib)
+	c11, err := helpers.CreateCrypto11(solib)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package remotepv
+package helpers
 
 import (
 	"errors"
@@ -6,7 +6,6 @@ import (
 	gincocrypto "github.com/GincoInc/go-crypto"
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/miekg/pkcs11"
-	"math/rand"
 )
 
 const DefaultHsmSoLib = "/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"
@@ -29,7 +28,7 @@ func CreateCrypto11(pkcs11lib string) (*crypto11.Context, error) {
 }
 
 func GenerateKeyPair(context *crypto11.Context, label []byte) error {
-	id := randomBytes32()
+	id := RandomBytes32()
 	if _, err := context.FindKeyPair(nil, label); err == nil {
 		return fmt.Errorf("key found: %v", label)
 	}
@@ -46,8 +45,7 @@ func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
 	} else if signer != nil {
 		return ErrKeyFound
 	}
-	pubId := randomBytes32()
-	dummyCurve := gincocrypto.Secp256k1()
+	pubId := RandomBytes32()
 	if pub, err := crypto11.NewAttributeSetWithIDAndLabel(pubId, label); err != nil {
 		return err
 	} else {
@@ -57,7 +55,7 @@ func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
 			// https://play.golang.org/p/M0VLD0RZAaM
 			pkcs11.NewAttribute(pkcs11.CKA_ECDSA_PARAMS, []byte {0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x0a}),
 		})
-		if signer, err := context.GenerateECDSAKeyPairWithAttributes(pub, priv, dummyCurve); err != nil {
+		if signer, err := context.GenerateECDSAKeyPairWithAttributes(pub, priv, gincocrypto.Secp256k1()); err != nil {
 			return err
 		} else {
 			if signer == nil {
@@ -66,10 +64,4 @@ func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
 			return nil
 		}
 	}
-}
-
-func randomBytes32() []byte {
-	result := make([]byte, 32)
-	rand.Read(result)
-	return result
 }
