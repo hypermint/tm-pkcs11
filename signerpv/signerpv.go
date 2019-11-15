@@ -1,11 +1,11 @@
-package remotepv
+package signerpv
 
 import (
+	"crypto"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	gincocrypto "github.com/GincoInc/go-crypto"
-	"github.com/ThalesIgnite/crypto11"
 	"github.com/btcsuite/btcd/btcec"
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -16,41 +16,40 @@ import (
 
 var secp256k1halfN = new(big.Int).Rsh(btcec.S256().N, 1)
 
-type RemoteSignerPV struct {
-	s crypto11.Signer
+type SignerPV struct {
+	s crypto.Signer
+	curve elliptic.Curve
 	logger log.Logger
 
 	pubKeyCache tmcrypto.PubKey
 }
 
-func NewRemoteSignerPV(s crypto11.Signer, l log.Logger) *RemoteSignerPV {
-	return &RemoteSignerPV{
-		s,
-		l,
+func NewSignerPV(signer crypto.Signer, curve elliptic.Curve, logger log.Logger) *SignerPV {
+	return &SignerPV{
+		signer,
+		curve,
+		logger,
 		nil,
 	}
 }
 
-func (pv *RemoteSignerPV) GetPubKey() tmcrypto.PubKey {
+func (pv *SignerPV) GetPubKey() tmcrypto.PubKey {
 	if pv.pubKeyCache != nil {
 		return pv.pubKeyCache
 	}
 	signer := pv.s
 	pk0 := signer.Public()
 	if pk, ok := pk0.(*ecdsa.PublicKey); ok {
-		p, err := PublicKeyToPubKeySecp256k1(pk)
-		if err != nil {
-			panic(err)
-		}
+		p := PublicKeyToPubKeySecp256k1(pk)
 		pv.logger.Debug("GetPubKey", "address", p.Address(), "pubkey", hex.EncodeToString(p[:]))
 		pv.pubKeyCache = p
 		return p
 	} else {
-		panic("invalid signer")
+		return nil
 	}
 }
 
-func (pv *RemoteSignerPV) SignVote(chainID string, vote *types.Vote) error {
+func (pv *SignerPV) SignVote(chainID string, vote *types.Vote) error {
 	if sigBytes, err := pv.signMsg(vote.SignBytes(chainID)); err != nil {
 		return err
 	} else {
@@ -60,7 +59,7 @@ func (pv *RemoteSignerPV) SignVote(chainID string, vote *types.Vote) error {
 	}
 }
 
-func (pv *RemoteSignerPV) SignProposal(chainID string, proposal *types.Proposal) error {
+func (pv *SignerPV) SignProposal(chainID string, proposal *types.Proposal) error {
 	if sigBytes, err := pv.signMsg(proposal.SignBytes(chainID)); err != nil {
 		return err
 	} else {
@@ -70,12 +69,12 @@ func (pv *RemoteSignerPV) SignProposal(chainID string, proposal *types.Proposal)
 	}
 }
 
-func (pv *RemoteSignerPV) signMsg(msgBytes []byte) ([]byte, error) {
+func (pv *SignerPV) signMsg(msgBytes []byte) ([]byte, error) {
 	hash := tmcrypto.Sha256(msgBytes)
 	if derSig, err := pv.s.Sign(rand.Reader, hash[:], nil); err != nil {
 		return nil, err
 	} else {
-		signature, err := btcec.ParseDERSignature(derSig, gincocrypto.Secp256k1()/*btcec.S256()*/)
+		signature, err := btcec.ParseDERSignature(derSig, pv.curve)
 		if err != nil {
 			return nil, err
 		}
@@ -95,9 +94,9 @@ func (pv *RemoteSignerPV) signMsg(msgBytes []byte) ([]byte, error) {
 	}
 }
 
-func PublicKeyToPubKeySecp256k1(pubKey0 *ecdsa.PublicKey) (secp256k1.PubKeySecp256k1, error) {
+func PublicKeyToPubKeySecp256k1(pubKey0 *ecdsa.PublicKey) secp256k1.PubKeySecp256k1 {
 	pubKey := btcec.PublicKey(*pubKey0)
 	var tmPubkeyBytes secp256k1.PubKeySecp256k1
 	copy(tmPubkeyBytes[:], pubKey.SerializeCompressed())
-	return tmPubkeyBytes, nil
+	return tmPubkeyBytes
 }

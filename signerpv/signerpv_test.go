@@ -1,4 +1,4 @@
-package remotepv
+package signerpv
 
 import (
 	gincocrypto "github.com/GincoInc/go-crypto"
@@ -27,7 +27,7 @@ func TestSignMsg(t *testing.T) {
 	a.NotNil(sig)
 }
 
-func createPV(id []byte, t *testing.T) *RemoteSignerPV {
+func createPV(id []byte, t *testing.T) *SignerPV {
 	solib, found := os.LookupEnv("HSM_SOLIB")
 	if !found {
 		solib = helpers.DefaultHsmSoLib
@@ -43,7 +43,7 @@ func createPV(id []byte, t *testing.T) *RemoteSignerPV {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pv := NewRemoteSignerPV(signer, logger)
+	pv := NewSignerPV(signer, gincocrypto.Secp256k1(), logger)
 	if pv == nil {
 		t.Fail()
 	}

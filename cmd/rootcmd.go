@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/ThalesIgnite/crypto11"
 	"github.com/hypermint/tm-pkcs11/helpers"
-	"github.com/hypermint/tm-pkcs11/remotepv"
+	"github.com/hypermint/tm-pkcs11/signerpv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -15,6 +15,7 @@ import (
 	"os"
 	"time"
 
+	gincocrypto "github.com/GincoInc/go-crypto"
 	xprivval "github.com/hypermint/tm-pkcs11/privval"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -121,14 +122,11 @@ func CreateEcdsaPV(context *crypto11.Context, label []byte) (types.PrivValidator
 			return nil, fmt.Errorf("not a ECDSA key")
 		}
 
-		pubKey, err := remotepv.PublicKeyToPubKeySecp256k1(pubKey0)
-		if err != nil {
-			return nil, err
-		}
+		pubKey := signerpv.PublicKeyToPubKeySecp256k1(pubKey0)
 		logger.Info("validator key info",
 			"address", pubKey.Address(),
 			"pub_key", cdc.MustMarshalJSON(pubKey),
 		)
-		return remotepv.NewRemoteSignerPV(signer, logger), nil
+		return signerpv.NewSignerPV(signer, gincocrypto.Secp256k1(), logger), nil
 	}
 }
