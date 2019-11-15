@@ -47,4 +47,6 @@ if ! /tm-pkcs11 "$@"; then
     ;;
   esac
   exit $code
+else
+  exit $?
 fi

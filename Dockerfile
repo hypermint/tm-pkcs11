@@ -26,14 +26,6 @@ RUN apt-get update && apt-get install -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# AWS CloudHSM
-
-RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client_latest_amd64.deb
-RUN dpkg -i cloudhsm-client_latest_amd64.deb
-
-RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client-pkcs11_latest_amd64.deb
-RUN dpkg -i cloudhsm-client-pkcs11_latest_amd64.deb
-
 # SoftHSM
 
 RUN git clone https://github.com/opendnssec/SoftHSMv2.git
@@ -52,6 +44,16 @@ RUN cd SoftHSMv2 \
 COPY softhsm2.conf /etc/softhsm2.conf
 RUN softhsm2-util --init-token --slot 0 --label "hoge" --so-pin password --pin password
 
+# AWS CloudHSM
+
+RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client_latest_amd64.deb
+RUN dpkg -i cloudhsm-client_latest_amd64.deb
+RUN rm -f cloudhsm-client_latest_amd64.deb
+
+RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client-pkcs11_latest_amd64.deb
+RUN dpkg -i cloudhsm-client-pkcs11_latest_amd64.deb
+RUN rm -f cloudhsm-client-pkcs11_latest_amd64.deb
+
 # Install tm-pkcs11
 
 COPY --from=builder /work/tm-pkcs11 /tm-pkcs11
@@ -62,5 +64,7 @@ ENV HSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
 
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
+
+RUN echo "" > /config.toml
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -15,6 +15,9 @@ build-image:
 run-image:
 	docker run -it hypermint/tm-pkcs11:unstable
 
+inspect-image:
+	docker run -it hypermint/tm-pkcs11:unstable pubkey
+
 hm-init:
 	rm -rf /tmp/hypermint
 	docker run -it --rm -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd tendermint init-validator --mnemonic $(MNEMONIC) --hdw_path $(HDW_PATH)
