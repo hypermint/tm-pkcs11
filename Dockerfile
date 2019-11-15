@@ -39,11 +39,6 @@ RUN cd SoftHSMv2 \
     && make \
     && make install
 
-# Configure SoftHSM
-
-COPY softhsm2.conf /etc/softhsm2.conf
-RUN softhsm2-util --init-token --slot 0 --label "hoge" --so-pin password --pin password
-
 # AWS CloudHSM
 
 RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/cloudhsm-client_latest_amd64.deb
@@ -54,6 +49,11 @@ RUN wget https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Xenial/clou
 RUN dpkg -i cloudhsm-client-pkcs11_latest_amd64.deb
 RUN rm -f cloudhsm-client-pkcs11_latest_amd64.deb
 
+# Configure SoftHSM
+
+COPY softhsm2.conf /etc/softhsm2.conf
+RUN softhsm2-util --init-token --slot 0 --label "default" --so-pin password --pin password
+
 # Install tm-pkcs11
 
 COPY --from=builder /work/tm-pkcs11 /tm-pkcs11
@@ -62,9 +62,15 @@ ENV CLOUDHSM_SOLIB /opt/cloudhsm/lib/libcloudhsm_pkcs11.so
 ENV SOFTHSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
 ENV HSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
 
+RUN echo "" > /config.toml
+
+# Setup key for SoftHSM
+
+RUN /tm-pkcs11 genkey
+
+# Entry point
+
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
-
-RUN echo "" > /config.toml
 
 ENTRYPOINT ["/entrypoint.sh"]

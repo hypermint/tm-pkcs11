@@ -8,7 +8,7 @@ import (
 	"github.com/miekg/pkcs11"
 )
 
-const DefaultHsmSoLib = "/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"
+const DefaultHsmSoLib = "/usr/local/lib/softhsm/libsofthsm2.so"
 
 var (
 	ErrKeyFound = errors.New("key found")

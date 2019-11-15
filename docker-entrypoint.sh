@@ -38,15 +38,14 @@ softhsm)
   exit 1
 esac
 
-if ! /tm-pkcs11 "$@"; then
-  code=$?
-  echo "Failed to start tm-pkcs11 ($code)."
+function handle_error() {
+  echo "Failed to start tm-pkcs11 ($1)."
   case ${HSM} in
   cloudhsm)
     cat /tmp/cloudhsm_client_start.log
     ;;
   esac
-  exit $code
-else
-  exit $?
-fi
+  exit "$1"
+}
+
+/tm-pkcs11 "$@" || handle_error $?

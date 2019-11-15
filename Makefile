@@ -18,6 +18,13 @@ run-image:
 inspect-image:
 	docker run -it hypermint/tm-pkcs11:unstable pubkey
 
+hm-config-from-image:
+	pub_key_value=$$(docker run -it hypermint/tm-pkcs11:unstable pubkey | jq -r .value); \
+	address=$$(docker run -it hypermint/tm-pkcs11:unstable pubkey --show-address); \
+	tmpfile=$$(mktemp); \
+	cat hm-config/genesis.json | jq ".validators[].pub_key.value = \"$${pub_key_value}\" | .validators[].address = \"$${address}\"" > $${tmpfile}; \
+	cp $${tmpfile} hm-config/genesis.json
+
 hm-init:
 	rm -rf /tmp/hypermint
 	docker run -it --rm -v "/tmp/hypermint:/root/.hmd" bluele/hypermint:unstable /hmd tendermint init-validator --mnemonic $(MNEMONIC) --hdw_path $(HDW_PATH)

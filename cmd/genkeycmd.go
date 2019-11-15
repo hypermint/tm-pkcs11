@@ -10,14 +10,13 @@ import (
 )
 
 func init() {
-	pubkeyCmd.Flags().String(FlagKeyLabel, "default", "key label")
-	pubkeyCmd.Flags().Bool("show-address", false, "key label")
-	rootCmd.AddCommand(pubkeyCmd)
+	genkeyCmd.Flags().String(FlagKeyLabel, "default", "key label")
+	rootCmd.AddCommand(genkeyCmd)
 }
 
-var pubkeyCmd = &cobra.Command{
-	Use:   "pubkey",
-	Short: "Get public key from HSM",
+var genkeyCmd = &cobra.Command{
+	Use:   "genkey",
+	Short: "Generate key on HSM",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
@@ -33,6 +32,12 @@ var pubkeyCmd = &cobra.Command{
 			panic(err)
 		}
 
+		if err := helpers.GenerateKeyPair2(c11ctx, []byte(keyLabel)); err != nil {
+			if err != helpers.ErrKeyFound {
+				panic(err)
+			}
+		}
+
 		if signer, err := c11ctx.FindKeyPair(nil, []byte(keyLabel)); err != nil {
 			return err
 		} else if signer == nil {
@@ -42,11 +47,7 @@ var pubkeyCmd = &cobra.Command{
 				return fmt.Errorf("not a ECDSA key")
 			} else {
 				pubKey := signerpv.PublicKeyToPubKeySecp256k1(pubKey0)
-				if viper.GetBool("show-address") {
-					fmt.Println(pubKey.Address())
-				} else {
-					fmt.Println(string(cdc.MustMarshalJSON(pubKey)))
-				}
+				fmt.Println(string(cdc.MustMarshalJSON(pubKey)))
 				return nil
 			}
 		}

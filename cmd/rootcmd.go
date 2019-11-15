@@ -33,7 +33,7 @@ func init() {
 	rootCmd.Flags().String(FlagAddr, ":26658", "Address of client to connect to")
 	rootCmd.Flags().String(FlagChainId, "test-chain", "chain id")
 	rootCmd.Flags().String(FlagKeyLabel, "default", "key label")
-	rootCmd.PersistentFlags().String(FlagTokenLabel, "cavium", "token label")
+	rootCmd.PersistentFlags().String(FlagTokenLabel, "default", "token label")
 	rootCmd.PersistentFlags().String(FlagPassword, "password", "password")
 	rootCmd.PersistentFlags().String(FlagHsmSolib, helpers.DefaultHsmSoLib, "password")
 }

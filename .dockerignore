@@ -2,3 +2,8 @@
 .hmd
 tm-pkcs11
 Dockerfile
+config.toml
+docker-compose.yml
+Makefile
+README.md
+hm-config
