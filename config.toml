@@ -1,0 +1,4 @@
+hsm-solib = "/usr/local/lib/softhsm/libsofthsm2.so"
+token-label = "hoge"
+chain-id = "test-chain-uAssCJ"
+addr = ":26658"
