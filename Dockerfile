@@ -58,10 +58,6 @@ RUN softhsm2-util --init-token --slot 0 --label "default" --so-pin password --pi
 
 COPY --from=builder /work/tm-pkcs11 /tm-pkcs11
 
-ENV CLOUDHSM_SOLIB /opt/cloudhsm/lib/libcloudhsm_pkcs11.so
-ENV SOFTHSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
-ENV HSM_SOLIB /usr/local/lib/softhsm/libsofthsm2.so
-
 RUN echo "" > /config.toml
 
 # Setup key for SoftHSM
