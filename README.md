@@ -6,17 +6,20 @@ Limitations:
 
 - Only support ECDSA-based validators (tendermint's default validator key is EdDSA)
 
+## How to run hypermint and tm-pkcs11
+
 ```
-./build/hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0.0.0.0:26658
+$ ./tm-pkcs11
 ```
 
 ```
-$ ./tm-pkcs11 --addr :26658 --priv-key ~/.hmd/config/priv_validator_key.json
+$ hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0.0.0.0:26658
 ```
 
-## How to use docker image 
+## How to use docker image
 
 ```
+$ docker build . -t hypermint/tm-pkcs11:unstable
 $ docker run -it --entrypoint /bin/bash hypermint/tm-pkcs11:unstable 
 ```
 
