@@ -21,6 +21,7 @@ const flagStateFile = "state-file"
 const flagOutputFile = "output-file"
 const flagOutputFormat = "output-format"
 const flagPemType = "pem-type"
+const flagVerbose = "verbose"
 
 func init() {
 	rootCmd.AddCommand(pkcs8Cmd)
@@ -29,6 +30,7 @@ func init() {
 	pkcs8Cmd.Flags().String(flagOutputFormat, "pem", "output format")
 	pkcs8Cmd.Flags().String(flagOutputFile, "", "output file path")
 	pkcs8Cmd.Flags().String(flagPemType, "PRIVATE KEY", "output file path")
+	pkcs8Cmd.Flags().Bool(flagVerbose, false, "verbose")
 }
 
 var pkcs8Cmd = &cobra.Command{
@@ -51,6 +53,12 @@ var pkcs8Cmd = &cobra.Command{
 			privateKey = (*ecdsa.PrivateKey)(key)
 		default:
 			return errors.New("invalid private key")
+		}
+
+		verbose := viper.GetBool(flagVerbose)
+		if verbose {
+			pub := PublicKeyToPubKeySecp256k1(privateKey.Public().(*ecdsa.PublicKey))
+			fmt.Fprintf(os.Stderr, "address=%v\n", pub.Address().String())
 		}
 
 		pkcs8, err := MarshalPKCS8PrivateKey(privateKey)
@@ -172,4 +180,11 @@ func oidFromNamedCurve(curve elliptic.Curve) (asn1.ObjectIdentifier, bool) {
 	}
 
 	return nil, false
+}
+
+func PublicKeyToPubKeySecp256k1(pubKey0 *ecdsa.PublicKey) secp256k1.PubKeySecp256k1 {
+	pubKey := btcec.PublicKey(*pubKey0)
+	var tmPubkeyBytes secp256k1.PubKeySecp256k1
+	copy(tmPubkeyBytes[:], pubKey.SerializeCompressed())
+	return tmPubkeyBytes
 }
