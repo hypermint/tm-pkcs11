@@ -11,7 +11,7 @@ import (
 
 func init() {
 	pubkeyCmd.Flags().String(FlagKeyLabel, "default", "key label")
-	pubkeyCmd.Flags().Bool("show-address", false, "key label")
+	pubkeyCmd.Flags().Bool("show-address", false, "show address")
 	rootCmd.AddCommand(pubkeyCmd)
 }
 
