@@ -29,6 +29,7 @@ const (
 	FlagHsmSolib   = "hsm-solib"
 	FlagDialerConnRetries = "dialer-conn-retries"
 	FlagDialerRetryInterval = "dialer-retry-interval"
+	FlagLogLevel   = "log-level"
 )
 
 func init() {
@@ -40,6 +41,7 @@ func init() {
 	rootCmd.PersistentFlags().String(FlagHsmSolib, helpers.DefaultHsmSoLib, "password")
 	rootCmd.PersistentFlags().Int(FlagDialerConnRetries, 1000, "retry limit of dialer")
 	rootCmd.PersistentFlags().Int(FlagDialerRetryInterval, 100, "retry interval in millisecond")
+	rootCmd.PersistentFlags().String(FlagLogLevel, "info", "log level")
 }
 
 var rootCmd = &cobra.Command{
@@ -62,6 +64,13 @@ var rootCmd = &cobra.Command{
 		logger := log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
 		).With("module", "priv_val")
+
+		logLevel := viper.GetString(FlagLogLevel)
+		if opt, err := log.AllowLevel(logLevel); err != nil {
+			return err
+		} else {
+			logger = log.NewFilter(logger, opt)
+		}
 
 		c11ctx, err := helpers.CreateCrypto11(hsmSolib, tokenLabel, password)
 		if err != nil {
@@ -97,6 +106,7 @@ var rootCmd = &cobra.Command{
 		privval.SignerDialerEndpointConnRetries(dialerConnRetries)(sd)
 		privval.SignerDialerEndpointTimeoutReadWrite(time.Duration(dialerRetryInterval)*time.Millisecond)(sd)
 		ss := privval.NewSignerServer(sd, chainID, pv)
+		ss.SetLogger(logger)
 
 		if err := ss.Start(); err != nil {
 			panic(err)

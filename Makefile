@@ -31,7 +31,7 @@ hm-init:
 	docker run -it --rm -v "/tmp/hypermint:/root/.hmd" -v "$(PWD)/hm-config:/hm-config" bluele/hypermint:unstable /hmd create --genesis /hm-config/genesis.json
 
 run-tm-pkcs11:
-	HSM_SOLIB=$(HSM_SOLIB) ./tm-pkcs11 --addr 127.0.0.1:26658 --chain-id test-chain-uAssCJ
+	HSM_SOLIB=$(HSM_SOLIB) ./tm-pkcs11 --addr 127.0.0.1:26658 --chain-id test-chain-uAssCJ --token-label default --log-level debug
 
 validate-circleci-config:
 	circleci config validate .circleci/config.yml
