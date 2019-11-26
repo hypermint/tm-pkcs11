@@ -29,9 +29,6 @@ func CreateCrypto11(pkcs11lib, tokenLabel, password string) (*crypto11.Context, 
 
 func GenerateKeyPair(context *crypto11.Context, label []byte) error {
 	id := RandomBytes32()
-	if _, err := context.FindKeyPair(nil, label); err == nil {
-		return fmt.Errorf("key found: %v", label)
-	}
 	_, err := context.GenerateECDSAKeyPairWithLabel(id, label, gincocrypto.Secp256k1())
 	if err != nil {
 		return err
@@ -40,11 +37,6 @@ func GenerateKeyPair(context *crypto11.Context, label []byte) error {
 }
 
 func GenerateKeyPair2(context *crypto11.Context, label []byte) error {
-	if signer, err := context.FindKeyPair(nil, label); err != nil {
-		return err
-	} else if signer != nil {
-		return ErrKeyFound
-	}
 	pubId := RandomBytes32()
 	if pub, err := crypto11.NewAttributeSetWithIDAndLabel(pubId, label); err != nil {
 		return err

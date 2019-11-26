@@ -77,17 +77,25 @@ var rootCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if err := helpers.GenerateKeyPair2(c11ctx, []byte(keyLabel)); err != nil {
-			if err != helpers.ErrKeyFound {
-				panic(err)
+		/*
+		if signer, err := c11ctx.FindKeyPair(nil, []byte(keyLabel)); err != nil {
+			return err
+		} else if signer == nil {
+			logger.Info("Generating key pairs", "label", keyLabel)
+			if err := helpers.GenerateKeyPair2(c11ctx, []byte(keyLabel)); err != nil {
+				if err != helpers.ErrKeyFound {
+					panic(err)
+				}
 			}
 		}
+		*/
+
 		pv, err := CreateEcdsaPV(c11ctx, []byte(keyLabel))
 		if err != nil {
 			panic(err)
 		}
 
-		logger.Info("Starting private validator", "addr", addr, "chainID", chainID, )
+		logger.Info("Starting private validator", "addr", addr, "chainID", chainID)
 
 		var dialer privval.SocketDialer
 		protocol, address := cmn.ProtocolAndAddress(addr)
