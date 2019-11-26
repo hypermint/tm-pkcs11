@@ -10,10 +10,15 @@ import (
 
 func Execute() {
 	cobra.OnInitialize(func() {
+		configName := "config"
+		env, found := os.LookupEnv("ENV")
+		if found {
+			configName = env
+		}
 		viper.AutomaticEnv()
 		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-		viper.SetConfigName("config")
+		viper.SetConfigName(configName)
 		viper.AddConfigPath("$HOME/.tm-pkcs11")
 		viper.AddConfigPath(".")
 		if err := viper.ReadInConfig(); err != nil {
