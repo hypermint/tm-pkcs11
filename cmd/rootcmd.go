@@ -21,15 +21,15 @@ import (
 )
 
 const (
-	FlagAddr       = "addr"
-	FlagChainId    = "chain-id"
-	FlagKeyLabel   = "key-label"
-	FlagTokenLabel = "token-label"
-	FlagPassword   = "password"
-	FlagHsmSolib   = "hsm-solib"
-	FlagDialerConnRetries = "dialer-conn-retries"
-	FlagDialerRetryInterval = "dialer-retry-interval"
-	FlagLogLevel   = "log-level"
+	FlagAddr                   = "addr"
+	FlagChainId                = "chain-id"
+	FlagKeyLabel               = "key-label"
+	FlagTokenLabel             = "token-label"
+	FlagPassword               = "password"
+	FlagHsmSolib               = "hsm-solib"
+	FlagDialerConnRetries      = "dialer-conn-retries"
+	FlagDialerReadWriteTimeout = "dialer-rw-timeout"
+	FlagLogLevel               = "log-level"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func init() {
 	rootCmd.PersistentFlags().String(FlagPassword, "password", "password")
 	rootCmd.PersistentFlags().String(FlagHsmSolib, helpers.DefaultHsmSoLib, "password")
 	rootCmd.PersistentFlags().Int(FlagDialerConnRetries, 1000, "retry limit of dialer")
-	rootCmd.PersistentFlags().Int(FlagDialerRetryInterval, 100, "retry interval in millisecond")
+	rootCmd.PersistentFlags().Int(FlagDialerReadWriteTimeout, 3000, "read/write timeout in millisecond")
 	rootCmd.PersistentFlags().String(FlagLogLevel, "info", "log level")
 }
 
@@ -59,7 +59,7 @@ var rootCmd = &cobra.Command{
 		password := viper.GetString(FlagPassword)
 		hsmSolib := viper.GetString(FlagHsmSolib)
 		dialerConnRetries := viper.GetInt(FlagDialerConnRetries)
-		dialerRetryInterval := viper.GetInt(FlagDialerRetryInterval)
+		dialerTimeoutReadWrite := viper.GetInt(FlagDialerReadWriteTimeout)
 
 		logger := log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
@@ -112,7 +112,7 @@ var rootCmd = &cobra.Command{
 
 		sd := privval.NewSignerDialerEndpoint(logger, dialer)
 		privval.SignerDialerEndpointConnRetries(dialerConnRetries)(sd)
-		privval.SignerDialerEndpointTimeoutReadWrite(time.Duration(dialerRetryInterval)*time.Millisecond)(sd)
+		privval.SignerDialerEndpointTimeoutReadWrite(time.Duration(dialerTimeoutReadWrite)*time.Millisecond)(sd)
 		ss := privval.NewSignerServer(sd, chainID, pv)
 		ss.SetLogger(logger)
 
