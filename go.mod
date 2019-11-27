@@ -12,10 +12,10 @@ require (
 	github.com/miekg/pkcs11 v1.0.3
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.1
-	github.com/spf13/viper v1.0.0
-	github.com/stretchr/testify v1.3.0
+	github.com/spf13/viper v1.5.0
+	github.com/stretchr/testify v1.4.0
 	github.com/tendermint/go-amino v0.14.1
-	github.com/tendermint/tendermint v0.32.3
+	github.com/tendermint/tendermint v0.32.8
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )
 
