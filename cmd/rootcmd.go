@@ -30,18 +30,30 @@ const (
 	FlagDialerConnRetries      = "dialer-conn-retries"
 	FlagDialerReadWriteTimeout = "dialer-rw-timeout"
 	FlagLogLevel               = "log-level"
+	FlagMaxSessions            = "max-sessions"
+)
+
+const (
+	DefaultKeyLabel = "default"
+	DefaultTokenLabel = "default"
+	DefaultPassword = "password"
+	DefaultLogLevel = "info"
+	DefaultMaxSessions = 512
+	DefaultDialerConnRetries = 1000
+	DefaultDialerReadWriteTimeout = 3000
 )
 
 func init() {
 	rootCmd.Flags().String(FlagAddr, ":26658", "Address of client to connect to")
 	rootCmd.Flags().String(FlagChainId, "test-chain", "chain id")
-	rootCmd.Flags().String(FlagKeyLabel, "default", "key label")
-	rootCmd.PersistentFlags().String(FlagTokenLabel, "default", "token label")
-	rootCmd.PersistentFlags().String(FlagPassword, "password", "password")
+	rootCmd.Flags().String(FlagKeyLabel, DefaultKeyLabel, "key label")
+	rootCmd.Flags().Int(FlagDialerConnRetries, DefaultDialerConnRetries, "retry limit of dialer")
+	rootCmd.Flags().Int(FlagDialerReadWriteTimeout, DefaultDialerReadWriteTimeout, "read/write timeout in millisecond")
+	rootCmd.Flags().Int(FlagMaxSessions, DefaultMaxSessions, "max sessions")
+	rootCmd.PersistentFlags().String(FlagTokenLabel, DefaultTokenLabel, "token label")
+	rootCmd.PersistentFlags().String(FlagPassword, DefaultPassword, "password")
 	rootCmd.PersistentFlags().String(FlagHsmSolib, helpers.DefaultHsmSoLib, "password")
-	rootCmd.PersistentFlags().Int(FlagDialerConnRetries, 1000, "retry limit of dialer")
-	rootCmd.PersistentFlags().Int(FlagDialerReadWriteTimeout, 3000, "read/write timeout in millisecond")
-	rootCmd.PersistentFlags().String(FlagLogLevel, "info", "log level")
+	rootCmd.PersistentFlags().String(FlagLogLevel, DefaultLogLevel, "log level")
 }
 
 var rootCmd = &cobra.Command{
@@ -60,6 +72,7 @@ var rootCmd = &cobra.Command{
 		hsmSolib := viper.GetString(FlagHsmSolib)
 		dialerConnRetries := viper.GetInt(FlagDialerConnRetries)
 		dialerTimeoutReadWrite := viper.GetInt(FlagDialerReadWriteTimeout)
+		maxSessions := viper.GetInt(FlagMaxSessions)
 
 		logger := log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
@@ -72,23 +85,10 @@ var rootCmd = &cobra.Command{
 			logger = log.NewFilter(logger, opt)
 		}
 
-		c11ctx, err := helpers.CreateCrypto11(hsmSolib, tokenLabel, password)
+		c11ctx, err := helpers.CreateCrypto11(hsmSolib, tokenLabel, password, maxSessions)
 		if err != nil {
 			panic(err)
 		}
-
-		/*
-		if signer, err := c11ctx.FindKeyPair(nil, []byte(keyLabel)); err != nil {
-			return err
-		} else if signer == nil {
-			logger.Info("Generating key pairs", "label", keyLabel)
-			if err := helpers.GenerateKeyPair2(c11ctx, []byte(keyLabel)); err != nil {
-				if err != helpers.ErrKeyFound {
-					panic(err)
-				}
-			}
-		}
-		*/
 
 		pv, err := CreateEcdsaPV(c11ctx, []byte(keyLabel))
 		if err != nil {

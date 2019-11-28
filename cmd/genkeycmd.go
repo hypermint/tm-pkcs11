@@ -27,7 +27,7 @@ var genkeyCmd = &cobra.Command{
 		hsmSolib := viper.GetString(FlagHsmSolib)
 		keyLabel := viper.GetString(FlagKeyLabel)
 
-		c11ctx, err := helpers.CreateCrypto11(hsmSolib, tokenLabel, password)
+		c11ctx, err := helpers.CreateCrypto11(hsmSolib, tokenLabel, password, DefaultMaxSessions)
 		if err != nil {
 			panic(err)
 		}

@@ -14,12 +14,13 @@ var (
 	ErrKeyFound = errors.New("key found")
 )
 
-func CreateCrypto11(pkcs11lib, tokenLabel, password string) (*crypto11.Context, error) {
+func CreateCrypto11(pkcs11lib, tokenLabel, password string, maxSessions int) (*crypto11.Context, error) {
 	context, err := crypto11.Configure(&crypto11.Config{
 		Path: pkcs11lib,
 		TokenLabel: tokenLabel,
 		Pin: password,
 		UseGCMIVFromHSM: true,
+		MaxSessions: maxSessions,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to load PKCS#11 library err=%v path=%v", err, pkcs11lib)
