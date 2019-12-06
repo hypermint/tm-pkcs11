@@ -69,4 +69,4 @@ RUN /tm-pkcs11 genkey
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "/tm-pkcs11"]

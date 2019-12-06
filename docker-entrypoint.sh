@@ -48,4 +48,4 @@ function handle_error() {
   exit "$1"
 }
 
-/tm-pkcs11 "$@" || handle_error $?
+"$@" || handle_error $?

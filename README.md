@@ -20,9 +20,5 @@ $ hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0
 
 ```
 $ docker build . -t hypermint/tm-pkcs11:unstable
-$ docker run -it --entrypoint /bin/bash hypermint/tm-pkcs11:unstable 
+$ docker run -it hypermint/tm-pkcs11:unstable 
 ```
-
-## References 
-
-- https://aws.amazon.com/jp/blogs/security/how-to-run-aws-cloudhsm-workloads-on-docker-containers/
