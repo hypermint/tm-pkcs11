@@ -1,7 +1,7 @@
 package signerpv
 
 import (
-	gincocrypto "github.com/GincoInc/go-crypto"
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/hypermint/tm-pkcs11/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
@@ -32,18 +32,18 @@ func createPV(id []byte, t *testing.T) *SignerPV {
 	if !found {
 		solib = helpers.DefaultHsmSoLib
 	}
-	c11, err := helpers.CreateCrypto11(solib, "hoge", "password")
+	c11, err := helpers.CreateCrypto11(solib, "default", "password", 10)
 	if err != nil {
 		t.Fatal(err)
 	}
 	logger := log.NewTMLogger(
 		log.NewSyncWriter(os.Stdout),
 	).With("module", "signer")
-	signer, err := c11.GenerateECDSAKeyPair(id, gincocrypto.Secp256k1())
+	signer, err := c11.GenerateECDSAKeyPair(id, btcec.S256())
 	if err != nil {
 		t.Fatal(err)
 	}
-	pv := NewSignerPV(signer, gincocrypto.Secp256k1(), logger)
+	pv := NewSignerPV(signer, btcec.S256(), logger)
 	if pv == nil {
 		t.Fail()
 	}

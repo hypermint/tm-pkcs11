@@ -3,10 +3,9 @@ module github.com/hypermint/tm-pkcs11
 go 1.13
 
 require (
-	github.com/GincoInc/go-crypto v1.2.0
 	github.com/ThalesIgnite/crypto11 v1.2.1
 	github.com/allegro/bigcache v1.2.1 // indirect
-	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
+	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/ethereum/go-ethereum v1.8.21
 	github.com/libp2p/go-buffer-pool v0.0.2
 	github.com/miekg/pkcs11 v1.0.3
@@ -19,4 +18,4 @@ require (
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )
 
-replace github.com/ThalesIgnite/crypto11 => github.com/ikehara/crypto11 v1.2.2-0.20191113070105-da74608c7b08
+replace github.com/ThalesIgnite/crypto11 => github.com/ikehara/crypto11 v1.2.2-0.20191206031436-3b6bf5a91977

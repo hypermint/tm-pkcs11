@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ThalesIgnite/crypto11"
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/hypermint/tm-pkcs11/helpers"
 	"github.com/hypermint/tm-pkcs11/signerpv"
 	"github.com/spf13/cobra"
@@ -15,7 +16,6 @@ import (
 	"os"
 	"time"
 
-	gincocrypto "github.com/GincoInc/go-crypto"
 	xprivval "github.com/hypermint/tm-pkcs11/privval"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -153,6 +153,6 @@ func CreateEcdsaPV(context *crypto11.Context, label []byte) (types.PrivValidator
 			"address", pubKey.Address(),
 			"pub_key", cdc.MustMarshalJSON(pubKey),
 		)
-		return signerpv.NewSignerPV(signer, gincocrypto.Secp256k1(), logger), nil
+		return signerpv.NewSignerPV(signer, btcec.S256(), logger), nil
 	}
 }

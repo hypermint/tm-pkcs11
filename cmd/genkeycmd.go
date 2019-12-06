@@ -32,7 +32,7 @@ var genkeyCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if err := helpers.GenerateKeyPair2(c11ctx, []byte(keyLabel)); err != nil {
+		if err := helpers.GenerateKeyPair(c11ctx, []byte(keyLabel), helpers.Secp256k1); err != nil {
 			if err != helpers.ErrKeyFound {
 				panic(err)
 			}
