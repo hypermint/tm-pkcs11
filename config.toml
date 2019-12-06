@@ -1,4 +1,4 @@
 hsm-solib = "/usr/local/lib/softhsm/libsofthsm2.so"
-token-label = "hoge"
+token-label = "default"
 chain-id = "test-chain-uAssCJ"
 addr = ":26658"
