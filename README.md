@@ -95,6 +95,15 @@ Run hmd command with priv_validator_laddr option and hypermint will accept the c
 $ hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0.0.0.0:26658
 ```
 
+## Run with docker-compose
+
+```
+$ make build-image
+$ make hm-config-from-image
+$ make hm-init
+$ docker-compose up
+```
+
 ## How to use docker image
 
 ```

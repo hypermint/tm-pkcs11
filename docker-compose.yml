@@ -23,8 +23,7 @@ services:
       timeout: "3s"
       interval: "10s"
   tm-pkcs11:
-    build:
-      context: .
+    image: hypermint/tm-pkcs11:unstable
     command: --addr hypermint:26658 --chain-id test-chain-uAssCJ
     depends_on:
       - hypermint
