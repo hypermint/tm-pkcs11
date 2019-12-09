@@ -30,14 +30,20 @@ type SignerPV struct {
 	retry       int64
 }
 
-func NewSignerPV(signer crypto.Signer, curve elliptic.Curve, logger log.Logger) *SignerPV {
-	return &SignerPV{
+func NewSignerPV(signer crypto.Signer, curve elliptic.Curve, logger log.Logger, options... Option) *SignerPV {
+	pv := &SignerPV{
 		s:                 signer,
 		curve:             curve,
 		logger:            logger,
 		retryLimit:        100,
 		malleableSigCheck: true,
 	}
+
+	for _, option := range options {
+		option(pv)
+	}
+
+	return pv
 }
 
 func (pv *SignerPV) GetPubKey() tmcrypto.PubKey {

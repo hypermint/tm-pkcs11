@@ -2,6 +2,7 @@ package signerpv
 
 import (
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/hypermint/tm-pkcs11/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
@@ -10,8 +11,7 @@ import (
 )
 
 func TestGetPubKey(t *testing.T) {
-	id := helpers.RandomBytes32()
-	pv := createPV(id, t)
+	pv := createPV(t)
 	assert.NotNil(t, pv)
 	pubKey := pv.GetPubKey()
 	assert.NotEmpty(t, pubKey.Address())
@@ -19,8 +19,8 @@ func TestGetPubKey(t *testing.T) {
 
 func TestSignMsg(t *testing.T) {
 	a := assert.New(t)
-	id := helpers.RandomBytes32()
-	pv := createPV(id, t)
+
+	pv := createPV(t)
 	msg := []byte{1, 2, 3}
 	sigBytes, err := pv.signMsg(msg)
 	a.NoError(err)
@@ -30,12 +30,51 @@ func TestSignMsg(t *testing.T) {
 	a.True(pub.VerifyBytes(msg, sigBytes))
 }
 
-func createPV(id []byte, t *testing.T) *SignerPV {
+func createPV(t *testing.T) *SignerPV {
+	options := []Option{
+		RetryLimit(10),
+		MalleableSigCheck(true),
+	}
+
+	_, found := os.LookupEnv("HSM_SOLIB")
+	if found {
+		createPVWithHSM(t, options...)
+	}
+	return createPVWithSigner(t, options...)
+}
+
+func createPVWithSigner(t *testing.T, options ...Option) *SignerPV {
+	privKey, err := crypto.GenerateKey()
+	if err != nil {
+		t.FailNow()
+	}
+	logger := log.NewTMLogger(
+		log.NewSyncWriter(os.Stdout),
+	).With("module", "signer")
+	pv := NewSignerPV(privKey, btcec.S256(), logger, options...)
+	if pv == nil {
+		t.Fail()
+	}
+	return pv
+}
+
+func createPVWithHSM(t *testing.T, options ...Option) *SignerPV {
+	maxSessions := 10
+	id := helpers.RandomBytes32()
+
 	solib, found := os.LookupEnv("HSM_SOLIB")
 	if !found {
 		solib = helpers.DefaultHsmSoLib
 	}
-	c11, err := helpers.CreateCrypto11(solib, "default", "password", 10)
+	token, found := os.LookupEnv("HSM_TOKEN")
+	if !found {
+		token = "default"
+	}
+	password, found := os.LookupEnv("HSM_PASSWORD")
+	if !found {
+		password = "password"
+	}
+	c11, err := helpers.CreateCrypto11(solib, token, password, maxSessions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +85,7 @@ func createPV(id []byte, t *testing.T) *SignerPV {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pv := NewSignerPV(signer, btcec.S256(), logger)
+	pv := NewSignerPV(signer, btcec.S256(), logger, options...)
 	if pv == nil {
 		t.Fail()
 	}
