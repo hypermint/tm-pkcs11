@@ -1,10 +1,13 @@
 # tm-pkcs11
 
 This is a PKCS#11 remote signer implementation for tendermint-based blockchain validators.
+(Please note that this software is still under development and not ready for production use)
 
 Limitations:
-
 - Only support ECDSA-based validators (tendermint's default validator key is EdDSA)
+
+TODO:
+- Vault support (e.g. AWS KSM) for storing HSM passwords
 
 ### Supported HSM
 
@@ -16,12 +19,12 @@ Other PKCS#11-based HSM might work as well.
 
 ### Supported middlewares
 
-Currently we tested with only hypermint (tendermint-based blockchain middleware with Web-assembly smart contract).
-But this might works with other tendermint-based blockchains which use ECDSA key on their validator nodes. 
+Currently we test this software with "hypermint" (tendermint-based blockchain middleware with WebAssembly smart contract).
+But this might works with other tendermint-based blockchains which use ECDSA key for their validator kes. 
 
 - hypermint (https://github.com/bluele/hypermint)
 
-## How to run tm-pkcs11
+## How to run tm-pkcs11 with SoftHSM
 
 ### Setting up SoftHSM
 
@@ -41,7 +44,7 @@ Then, put your own configuration in config.toml.
 hsm-solib = "/usr/local/lib/softhsm/libsofthsm2.so" # for Mac
 token-label = "default"
 chain-id = "test-chain-uAssCJ" # please replace it with your chain id 
-addr = ":26658"
+addr = ":26658" # signer endpoint
 ```
 
 Now, you can generate a EC keypair using the following command.
@@ -80,8 +83,8 @@ You can put the generated key into your genesis.json file.
 
 ### Run tm-pkcs11
 
-First, you have to build and run tm-pkcs11.
-tm-pkcs11 will start trying to connect to the validator endpoint specified in the configuration.
+First, you have to run tm-pkcs11.
+tm-pkcs11 will start trying to connect to the signer endpoint specified in the configuration.
 
 ```
 $ ./tm-pkcs11
@@ -89,13 +92,14 @@ $ ./tm-pkcs11
 
 ### Run hypermint
 
-Run hmd command with priv_validator_laddr option and hypermint will accept the connection request from tm-pkcs11.
+Next, open another terminal window and run "hmd" command with priv_validator_laddr option.
+hypermint will immediately accept the connection request from tm-pkcs11 and start working.
 
 ```
 $ hmd start --log_level="main:info" --home=~/.hmd --priv_validator_laddr=tcp://0.0.0.0:26658
 ```
 
-## Run with docker-compose
+## Run hypermint and tm-pkcs11 using docker-compose
 
 ```
 $ make build-image
@@ -106,7 +110,26 @@ $ docker-compose up
 
 ## How to use docker image
 
+Docker image includes an entrypoint script which runs required daemons before running
+tm-pkcs11. This image uses SoftHSM by default for testing purposes.
+
 ```
 $ docker build . -t hypermint/tm-pkcs11:unstable
 $ docker run -it hypermint/tm-pkcs11:unstable 
 ```
+
+Please set HSM environment variable for other HSMs and specify your configurations as well.
+For CloudHSM, it needs ENI IP address of a HSM module. 
+
+```
+$ docker run -it \
+  -e HSM=cloudhsm \
+  -e CLOUDHSM_IP=10.101.9.111 \
+  hypermint/tm-pkcs11:unstable \
+  --addr :26658 \
+  --token-label cavium \
+  --key-label validator1 \
+  --password val1:password
+```
+
+(Some variables should not be included in an image nor command-line parameters.)
