@@ -18,4 +18,4 @@ require (
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )
 
-replace github.com/ThalesIgnite/crypto11 => github.com/ikehara/crypto11 v1.2.2-0.20191206031436-3b6bf5a91977
+replace github.com/ThalesIgnite/crypto11 => github.com/hypermint/crypto11 v1.2.2-0.20191206031436-3b6bf5a91977
