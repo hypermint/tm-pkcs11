@@ -22,9 +22,12 @@ func TestSignMsg(t *testing.T) {
 	id := helpers.RandomBytes32()
 	pv := createPV(id, t)
 	msg := []byte{1, 2, 3}
-	sig, err := pv.signMsg(msg)
+	sigBytes, err := pv.signMsg(msg)
 	a.NoError(err)
-	a.NotNil(sig)
+	a.NotNil(sigBytes)
+
+	pub := pv.GetPubKey()
+	a.True(pub.VerifyBytes(msg, sigBytes))
 }
 
 func createPV(id []byte, t *testing.T) *SignerPV {

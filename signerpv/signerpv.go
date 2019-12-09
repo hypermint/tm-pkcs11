@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"github.com/btcsuite/btcd/btcec"
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -14,22 +15,28 @@ import (
 	"math/big"
 )
 
+var errRetryLimitExceeded = errors.New("exceeded retry limit")
+
 var secp256k1halfN = new(big.Int).Rsh(btcec.S256().N, 1)
 
 type SignerPV struct {
-	s crypto.Signer
-	curve elliptic.Curve
-	logger log.Logger
+	s                 crypto.Signer
+	curve             elliptic.Curve
+	logger            log.Logger
+	retryLimit        int
+	malleableSigCheck bool
 
 	pubKeyCache tmcrypto.PubKey
+	retry       int64
 }
 
 func NewSignerPV(signer crypto.Signer, curve elliptic.Curve, logger log.Logger) *SignerPV {
 	return &SignerPV{
-		signer,
-		curve,
-		logger,
-		nil,
+		s:                 signer,
+		curve:             curve,
+		logger:            logger,
+		retryLimit:        100,
+		malleableSigCheck: true,
 	}
 }
 
@@ -71,27 +78,38 @@ func (pv *SignerPV) SignProposal(chainID string, proposal *types.Proposal) error
 
 func (pv *SignerPV) signMsg(msgBytes []byte) ([]byte, error) {
 	hash := tmcrypto.Sha256(msgBytes)
-	if derSig, err := pv.s.Sign(rand.Reader, hash[:], nil); err != nil {
-		return nil, err
-	} else {
+	var sigBytes []byte
+
+	retryCount := 0
+	for sigBytes == nil && retryCount < pv.retryLimit {
+		derSig, err := pv.s.Sign(rand.Reader, hash[:], nil)
+		if err != nil {
+			return nil, err
+		}
+
 		signature, err := btcec.ParseDERSignature(derSig, pv.curve)
 		if err != nil {
 			return nil, err
 		}
 
-		rbytes, sbytes := signature.R.Bytes(), signature.S.Bytes()
-		sigBytes := make([]byte, 64)
-		copy(sigBytes[32-len(rbytes):32], rbytes)
-		copy(sigBytes[64-len(sbytes):64], sbytes)
-
 		// Reject malleable signatures.
 		// Check tendermint@v0.32.3/crypto/secp256k1/secp256k1_nocgo.go for detail
-		if signature.S.Cmp(secp256k1halfN) > 0 {
-			return pv.signMsg(msgBytes)
+		if pv.malleableSigCheck && signature.S.Cmp(secp256k1halfN) > 0 {
+			retryCount++
+			continue
 		}
 
-		return sigBytes, nil
+		sigBytes = make([]byte, 64)
+		rbytes, sbytes := signature.R.Bytes(), signature.S.Bytes()
+		copy(sigBytes[32-len(rbytes):32], rbytes)
+		copy(sigBytes[64-len(sbytes):64], sbytes)
 	}
+
+	pv.retry += int64(retryCount)
+	if sigBytes == nil {
+		return nil, errRetryLimitExceeded
+	}
+	return sigBytes, nil
 }
 
 func PublicKeyToPubKeySecp256k1(pubKey0 *ecdsa.PublicKey) secp256k1.PubKeySecp256k1 {
