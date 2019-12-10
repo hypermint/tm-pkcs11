@@ -6,7 +6,6 @@ require (
 	github.com/ThalesIgnite/crypto11 v1.2.1
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta
-	github.com/ethereum/go-ethereum v1.8.21
 	github.com/libp2p/go-buffer-pool v0.0.2
 	github.com/miekg/pkcs11 v1.0.3
 	github.com/pkg/errors v0.8.1

@@ -1,8 +1,9 @@
 package signerpv
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
 	"github.com/btcsuite/btcd/btcec"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/hypermint/tm-pkcs11/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
@@ -44,7 +45,7 @@ func createPV(t *testing.T) *SignerPV {
 }
 
 func createPVWithSigner(t *testing.T, options ...Option) *SignerPV {
-	privKey, err := crypto.GenerateKey()
+	privKey, err := ecdsa.GenerateKey(btcec.S256(), rand.Reader)
 	if err != nil {
 		t.FailNow()
 	}
